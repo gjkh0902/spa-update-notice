@@ -1,5 +1,5 @@
-import '@evillt/toast/dist/toast.css'
-import {createToast} from '@evillt/toast'
+import 'vercel-toast-fork/dist/vercel-toast.css'
+import {createToast} from 'vercel-toast-fork'
 
 main()
 
@@ -8,9 +8,11 @@ function main() {
 
   // 当前应用版本
   const currentVersion = '{{currentVersion}}'
+
   // 上次访问时间 ms
   let lastSeenMS = 0
-  // 一秒 ms
+
+  // 1s
   const OneSecondMS = 1000
 
   const {dispatch} = createInterval(fetchVersion)
@@ -23,26 +25,56 @@ function main() {
   document.addEventListener('visibilitychange', checker)
 
   //url地址发生变化
-  // window.onhashchange = function () {
-  //   console.log('URL发生变化了');
-  //   checker()
-  // };
+  window.onhashchange = function() {
+    console.log('URL发生变化了')
+    checker()
+  }
 
+  //倒计时10s内自动刷新
+  let timeOutUpdate = 10
+  let timeOutFunc
+
+  //倒计时10s
+  function coutTime(index) {
+    timeOutFunc = setTimeout(function() {
+      if (index == 1) {
+        //10s结束后的操作
+        console.log(1)
+        clearTimeout(timeOutFunc)
+        window.location.reload()
+      } else {
+        console.log(2)
+        coutTime(--index)
+        document.querySelector('div.toast-inner .ok-button').innerHTML =
+          '立即刷新(' + index + 's)'
+      }
+    }, 1000)
+  }
+
+  //刷新页面
   function showRefreshPopup() {
     popupFlag = true
-
     dispatch('stopInterval')
 
     // 延后 1 秒显示以使得没有那么唐突
     setTimeout(() => {
-      createToast('hi，发现新版本可用', {
+      createToast('hi，发现新版本可用。', {
         action: {
           text: '立即刷新',
           callback: () => {
+            clearTimeout(timeOutFunc)
             window.location.reload()
+          }
+        },
+        cancel: {
+          text: '取消',
+          callback: els => {
+            clearTimeout(timeOutFunc)
+            els.destory()
           }
         }
       })
+      coutTime(timeOutUpdate)
     }, OneSecondMS)
   }
 
@@ -82,11 +114,10 @@ export function compareVersion(newVersion, currentVersion) {
     const n = newVersion.split('.')
     const c = currentVersion.split('.')
 
-    console.log('1:', n)
-    console.log('2:', c)
+    console.log(n, c)
 
     for (let i = 0; i <= n.length; i++) {
-      if (Number(n[i]) > Number(c[i])) return true
+      if (Number(n[i]) > Number(c[i] || 0)) return true
     }
   }
 
