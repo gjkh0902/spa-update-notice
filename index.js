@@ -35,7 +35,8 @@ class UpdatePopup {
                 publicPath: '',
                 inject: true, // 自动注入到 webpack.entry
                 envKey: 'UPDATE_POPUP_VERSION',
-                versionFileName: 'update_popup_version.txt'
+                versionFileName: 'update_popup_version.txt',
+                isNeedNotice: false //是否需要主动提醒用户
             },
             options
         )
@@ -97,6 +98,7 @@ class UpdatePopup {
             replaceStr(content, {
                 envKey: this.options.envKey,
                 currentVersion: this.version,
+                isNeedNotice: this.options.isNeedNotice,
                 ...extraReplacement
             })
         )
